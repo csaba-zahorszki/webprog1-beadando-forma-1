@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript CRUD - Forma-1 Pilóták</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; background-color: #f4f4f4; }
+        header { background-color: #e10600; color: white; padding: 20px; text-align: center; }
+        nav { background-color: #15151e; padding: 15px; text-align: center; }
+        nav a { color: white; margin: 0 15px; text-decoration: none; font-weight: bold; }
+        nav a:hover { color: #e10600; text-decoration: underline; }
+        main { flex: 1; padding: 20px; max-width: 900px; margin: 0 auto; width: 100%; }
+        footer { background-color: #15151e; color: white; text-align: center; padding: 15px; margin-top: auto; }
+        .form-container, .search-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        input[type="text"], select { width: calc(100% - 22px); padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;}
+        button { background-color: #e10600; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        button:hover { background-color: #b30500; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #15151e; color: white; }
+        .action-btn { margin-right: 5px; font-size: 0.9em; padding: 5px 10px; }
+        .edit-btn { background-color: #f39c12; }
+        .delete-btn { background-color: #c0392b; }
+        .pagination { text-align: center; margin-top: 20px; padding: 15px; background: white; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .page-info { margin: 0 20px; font-weight: bold; font-size: 1.1em; }
+        
+        /* Új stílus a keresőnek */
+        .search-container h3 { margin-top: 0; }
+        .search-container input { width: 100%; margin: 0; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Web programozás-1 Beadandó Feladat</h1>
+    </header>
+
+    <nav>
+        <a href="index.html">Főoldal</a>
+        <a href="javascript.html">JavaScript CRUD</a>
+        <a href="react.html">React CRUD</a>
+        <a href="spa.html">SPA</a>
+        <a href="fetchapi.html">Fetch API</a>
+        <a href="axios.html">Axios</a>
+        <a href="oojs.html">OOJS</a>
+    </nav>
+
+    <main>
+        <h2>Pilóták Nyilvántartása</h2>
+        
+        <div class="search-container">
+            <h3>Keresés név alapján</h3>
+            <input type="text" id="searchInput" placeholder="Gépeld be a pilóta nevét..." onkeyup="filterPilots()">
+        </div>
+
+        <div class="form-container">
+            <h3 id="formTitle">Új Pilóta Hozzáadása</h3>
+            <input type="hidden" id="pilotaAz">
+            
+            <label for="nev">Név:</label>
+            <input type="text" id="nev">
+            
+            <label for="nem">Nem:</label>
+            <select id="nem">
+                <option value="F">Férfi (F)</option>
+                <option value="N">Nő (N)</option>
+            </select>
+            
+            <label for="szuldat">Születési dátum:</label>
+            <input type="text" id="szuldat">
+            
+            <label for="nemzet">Nemzetiség:</label>
+            <input type="text" id="nemzet">
+            
+            <button onclick="savePilota()" id="saveBtn">Hozzáadás</button>
+            <button onclick="resetForm()" style="background-color: #7f8c8d; display: none;" id="cancelBtn">Mégse</button>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Azonosító</th>
+                    <th>Név</th>
+                    <th>Nem</th>
+                    <th>Születési dátum</th>
+                    <th>Nemzetiség</th>
+                    <th>Műveletek</th>
+                </tr>
+            </thead>
+            <tbody id="pilotaTableBody"></tbody>
+        </table>
+
+        <div class="pagination">
+            <button onclick="prevPage()" id="prevBtn">Előző oldal</button>
+            <span class="page-info" id="pageInfo">1. oldal</span>
+            <button onclick="nextPage()" id="nextBtn">Következő oldal</button>
+        </div>
+    </main>
+
+    <footer>
+        <p>Készítette: [Saját Neved] ([Neptun 1]) és [Társad Neve] ([Neptun 2])</p>
+    </footer>
+
+    <script>
+        let pilotak = [];
+        let filteredPilotak = []; // Ezt a tömböt használjuk a megjelenítéshez
+        let szerkesztesAlatt = null;
+        
+        let currentPage = 1;
+        const rowsPerPage = 10;
+
+        async function loadData() {
+            try {
+                const response = await fetch('pilota.txt');
+                const text = await response.text();
+                const lines = text.split('\n');
+                
+                pilotak = [];
+                for (let i = 1; i < lines.length; i++) {
+                    if (lines[i].trim() === "") continue;
+                    const data = lines[i].split('\t');
+                    if (data.length >= 5) {
+                        pilotak.push({
+                            az: parseInt(data[0]),
+                            nev: data[1],
+                            nem: data[2],
+                            szuldat: data[3],
+                            nemzet: data[4].trim()
+                        });
+                    }
+                }
+                // Kezdetben a szűrt lista megegyezik a teljessel
+                filteredPilotak = [...pilotak];
+                renderTable();
+            } catch (error) {
+                console.error("Hiba a fájl beolvasásakor:", error);
+            }
+        }
+
+        // ÚJ FUNKCIÓ: Keresés/Szűrés
+        function filterPilots() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            if (searchTerm === "") {
+                filteredPilotak = [...pilotak];
+            } else {
+                filteredPilotak = pilotak.filter(p => p.nev.toLowerCase().includes(searchTerm));
+            }
+            
+            currentPage = 1; // Kereséskor mindig ugorjunk az első oldalra
+            renderTable();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('pilotaTableBody');
+            tbody.innerHTML = ''; 
+
+            // Most már a filteredPilotak alapján számolunk mindent!
+            const totalPages = Math.ceil(filteredPilotak.length / rowsPerPage) || 1;
+            
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            const startIndex = (currentPage - 1) * rowsPerPage;
+            const endIndex = startIndex + rowsPerPage;
+            
+            const currentPilotak = filteredPilotak.slice(startIndex, endIndex);
+
+            currentPilotak.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${p.az}</td>
+                    <td>${p.nev}</td>
+                    <td>${p.nem}</td>
+                    <td>${p.szuldat}</td>
+                    <td>${p.nemzet}</td>
+                    <td>
+                        <button class="action-btn edit-btn" onclick="editPilota(${p.az})">Szerkesztés</button>
+                        <button class="action-btn delete-btn" onclick="deletePilota(${p.az})">Törlés</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('pageInfo').innerText = `${currentPage}. oldal a ${totalPages}-ből (Összesen: ${filteredPilotak.length} találat)`;
+            document.getElementById('prevBtn').disabled = currentPage === 1;
+            document.getElementById('nextBtn').disabled = currentPage === totalPages;
+        }
+
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable();
+            }
+        }
+
+        function nextPage() {
+            const totalPages = Math.ceil(filteredPilotak.length / rowsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderTable();
+            }
+        }
+
+        function savePilota() {
+            const nev = document.getElementById('nev').value;
+            const nem = document.getElementById('nem').value;
+            const szuldat = document.getElementById('szuldat').value;
+            const nemzet = document.getElementById('nemzet').value;
+
+            if (!nev || !szuldat || !nemzet) return;
+
+            if (szerkesztesAlatt !== null) {
+                // A fő tömbben frissítünk
+                const index = pilotak.findIndex(p => p.az === szerkesztesAlatt);
+                pilotak[index] = { az: szerkesztesAlatt, nev, nem, szuldat, nemzet };
+            } else {
+                const newAz = pilotak.length > 0 ? Math.max(...pilotak.map(p => p.az)) + 1 : 1;
+                pilotak.push({ az: newAz, nev, nem, szuldat, nemzet });
+            }
+            
+            // Frissítjük a szűrőt és újrarajzoljuk
+            filterPilots(); 
+            resetForm();
+        }
+
+        function editPilota(azonosito) {
+            const p = pilotak.find(p => p.az === azonosito);
+            if (p) {
+                document.getElementById('pilotaAz').value = p.az;
+                document.getElementById('nev').value = p.nev;
+                document.getElementById('nem').value = p.nem;
+                document.getElementById('szuldat').value = p.szuldat;
+                document.getElementById('nemzet').value = p.nemzet;
+                document.getElementById('formTitle').innerText = "Pilóta Szerkesztése";
+                document.getElementById('saveBtn').innerText = "Mentés";
+                document.getElementById('cancelBtn').style.display = "inline-block";
+                szerkesztesAlatt = azonosito;
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function deletePilota(azonosito) {
+            if (confirm("Biztosan törölni szeretnéd ezt a pilótát?")) {
+                // A fő tömbből törlünk
+                pilotak = pilotak.filter(p => p.az !== azonosito);
+                // Frissítjük a szűrőt és újrarajzoljuk
+                filterPilots();
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('nev').value = '';
+            document.getElementById('nem').value = 'F';
+            document.getElementById('szuldat').value = '';
+            document.getElementById('nemzet').value = '';
+            document.getElementById('formTitle').innerText = "Új Pilóta Hozzáadása";
+            document.getElementById('saveBtn').innerText = "Hozzáadás";
+            document.getElementById('cancelBtn').style.display = "none";
+            szerkesztesAlatt = null;
+        }
+
+        window.onload = loadData;
+    </script>
+</body>
+</html>
