@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPA - React Alkalmazások</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; background-color: #f4f4f4; }
+        header { background-color: #e10600; color: white; padding: 20px; text-align: center; }
+        nav { background-color: #15151e; padding: 15px; text-align: center; }
+        nav a { color: white; margin: 0 15px; text-decoration: none; font-weight: bold; }
+        nav a:hover { color: #e10600; text-decoration: underline; }
+        main { flex: 1; display: flex; flex-direction: column; }
+        footer { background-color: #15151e; color: white; text-align: center; padding: 15px; margin-top: auto; }
+        
+        /* Az iframe stílusa, hogy kitöltse a helyet és ne legyen kerete */
+        iframe { width: 100%; flex: 1; min-height: 700px; border: none; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Web programozás-1 Előadás Házi feladat</h1>
+    </header>
+
+    <nav>
+        <a href="index.html">Főoldal</a>
+        <a href="javascript.html">JavaScript CRUD</a>
+        <a href="react.html">React CRUD</a>
+        <a href="spa.html">SPA</a>
+        <a href="fetchapi.html">Fetch API</a>
+        <a href="axios.html">Axios</a>
+        <a href="oojs.html">OOJS</a>
+    </nav>
+
+    <main>
+        <iframe src="react/dist/index.html" title="React SPA Mini Alkalmazások"></iframe>
+    </main>
+
+    <footer>
+        <p>Készítette: Zahorszki Csaba [Q3R1ZR] és Fajcsák Gábor [DYE996]</p>
+    </footer>
+
+</body>
+</html>
