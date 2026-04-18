@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <title>Fetch API CRUD - Pilóták</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f4f4; padding: 20px; }
+        .container { max-width: 700px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { color: #e10600; border-bottom: 2px solid #15151e; padding-bottom: 10px; }
+        .input-group { margin-bottom: 20px; display: flex; gap: 10px; }
+        input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        button { padding: 10px 20px; cursor: pointer; background: #e10600; color: white; border: none; border-radius: 4px; font-weight: bold; }
+        button:hover { background: #b30500; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border-bottom: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background: #15151e; color: white; }
+        .delete-btn { background: #333; padding: 5px 10px; font-size: 0.8em; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Fetch API CRUD (5. feladat)</h2>
+        
+        <div class="input-group">
+            <input type="text" id="ujPilotaNev" placeholder="Írd be a pilóta nevét...">
+            <button onclick="hozzaadPilota()">Hozzáadás</button>
+        </div>
+
+        <table id="pilotaTabla">
+            <thead>
+                <tr>
+                    <th>Azonosító</th>
+                    <th>Név</th>
+                    <th>Művelet</th>
+                </tr>
+            </thead>
+            <tbody>
+                </tbody>
+        </table>
+
+        <p style="margin-top: 20px;">
+            <a href="index.html" style="color: #666;">← Vissza a főoldalra</a>
+        </p>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/pilotak';
+
+        // 1. READ - Adatok lekérése a szerverről (GET)
+        async function betolt() {
+            try {
+                const valasz = await fetch(API_URL);
+                const adatok = await valasz.json();
+                const tbody = document.querySelector('#pilotaTabla tbody');
+                
+                tbody.innerHTML = ''; 
+                adatok.forEach(p => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${p.id}</td>
+                            <td>${p.nev}</td>
+                            <td><button class="delete-btn" onclick="torolPilota('${p.id}')">Törlés</button></td>
+                        </tr>
+                    `;
+                });
+            } catch (h") {
+                console.error("Hiba történt:", h);
+            }
+        }
+
+        // 2. CREATE - Új adat beküldése a szerverre (POST)
+        async function hozzaadPilota() {
+            const nevMezo = document.getElementById('ujPilotaNev');
+            const nev = nevMezo.value;
+            
+            if (!nev) return alert("Adj meg egy nevet!");
+
+            await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    nev: nev,
+                    nem: "F",
+                    szuldat: "2000.01.01",
+                    nemzet: "ismeretlen"
+                })
+            });
+
+            nevMezo.value = '';
+            betolt(); // Lista frissítése
+        }
+
+        // 3. DELETE - Adat törlése a szerverről (DELETE)
+        async function torolPilota(id) {
+            if (!confirm("Biztosan törlöd ezt a pilótát a szerverről?")) return;
+
+            await fetch(`${API_URL}/${id}`, {
+                method: 'DELETE'
+            });
+            
+            betolt(); // Lista frissítése
+        }
+
+        // Indításkor adatok betöltése
+        window.onload = betolt;
+    </script>
+</body>
+</html>
