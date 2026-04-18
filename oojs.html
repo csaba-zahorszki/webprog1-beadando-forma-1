@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <title>OOJS Grafika (7. Feladat)</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #15151e; font-family: 'Segoe UI', sans-serif; color: white; }
+        #vezerlo { position: absolute; top: 20px; left: 20px; z-index: 10; background: rgba(0,0,0,0.8); padding: 25px; border-radius: 8px; border-top: 4px solid #e10600; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .alakzat { position: absolute; cursor: pointer; transition: transform 0.2s, opacity 0.2s; box-shadow: 0 0 15px rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.5); }
+        .alakzat:hover { transform: scale(1.1); opacity: 0.8; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; background-color: #e10600; color: white; border: none; border-radius: 4px; font-weight: bold; transition: 0.3s; }
+        button:hover { background-color: #b30500; }
+        a { color: #ccc; text-decoration: none; display: inline-block; margin-top: 15px; }
+        a:hover { color: white; }
+    </style>
+</head>
+<body>
+
+    <div id="vezerlo">
+        <h2>7. Feladat: OOJS Alakzatok</h2>
+        <p>Kattints a gombokra az alakzatok generálásához!<br><small>(Ha rákattintasz egy alakzatra, az eltűnik.)</small></p>
+        <button onclick="kellEgyKor()">🔴 Kör generálása</button>
+        <button onclick="kellEgyNegyzet()">🟦 Négyzet generálása</button>
+        <br>
+        <a href="index.html">← Vissza a főoldalra</a>
+    </div>
+
+    <script>
+        // 1. Alaposztály (class) létrehozása
+        class Alakzat {
+            
+            // 2. Konstruktor (constructor) beállítása
+            constructor(nev) {
+                this.nev = nev;
+                this.meret = Math.floor(Math.random() * 80) + 40; // Véletlen méret 40 és 120px között
+                this.x = Math.random() * (window.innerWidth - 150); // Véletlen X pozíció
+                this.y = Math.random() * (window.innerHeight - 150); // Véletlen Y pozíció
+                this.szin = `hsl(${Math.random() * 360}, 80%, 50%)`; // Véletlen szín
+                
+                // Létrehozzuk a HTML elemet (DOM)
+                this.elem = document.createElement('div');
+                this.elem.className = 'alakzat';
+            }
+
+            // 3. Metódusok definiálása
+            megjelenit() {
+                this.elem.style.width = this.meret + 'px';
+                this.elem.style.height = this.meret + 'px';
+                this.elem.style.backgroundColor = this.szin;
+                this.elem.style.left = this.x + 'px';
+                this.elem.style.top = this.y + 'px';
+
+                // Bónusz: rákattintáskor törlődik az alakzat
+                this.elem.onclick = () => this.elem.remove();
+
+                // 4. document.body.appendChild alkalmazása
+                document.body.appendChild(this.elem);
+            }
+        }
+
+        // 5. Öröklődés (extends) alkalmazása - A Kör örökli az Alakzat tulajdonságait
+        class Kor extends Alakzat {
+            constructor() {
+                // 6. Ősosztály hívása (super)
+                super('Kör'); 
+                this.elem.style.borderRadius = '50%'; // Ebből tudja a böngésző, hogy kör alakú legyen
+            }
+        }
+
+        // Másik öröklődés a Négyzetnek
+        class Negyzet extends Alakzat {
+            constructor() {
+                super('Négyzet'); // Itt is hívjuk az ősosztályt
+            }
+        }
+
+        // Gombokhoz kötött indító függvények
+        function kellEgyKor() {
+            const ujKor = new Kor();
+            ujKor.megjelenit();
+        }
+
+        function kellEgyNegyzet() {
+            const ujNegyzet = new Negyzet();
+            ujNegyzet.megjelenit();
+        }
+    </script>
+
+</body>
+</html>
