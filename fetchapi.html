@@ -1,109 +1,104 @@
 <!DOCTYPE html>
 <html lang="hu">
 <head>
-    <meta charset="UTF-8">
-    <title>Fetch API CRUD - Pilóták</title>
+    <meta charset="UTF-8"><title>Fetch API CRUD + Update</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f4f4; padding: 20px; }
-        .container { max-width: 700px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h2 { color: #e10600; border-bottom: 2px solid #15151e; padding-bottom: 10px; }
-        .input-group { margin-bottom: 20px; display: flex; gap: 10px; }
-        input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
-        button { padding: 10px 20px; cursor: pointer; background: #e10600; color: white; border: none; border-radius: 4px; font-weight: bold; }
-        button:hover { background: #b30500; }
+        body { font-family: sans-serif; background: #f4f4f4; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        .form-group { margin-bottom: 15px; background: #eee; padding: 15px; border-radius: 5px; }
+        input { padding: 8px; margin-right: 5px; width: 200px; }
+        button { padding: 8px 15px; cursor: pointer; border: none; border-radius: 3px; color: white; }
+        .btn-add { background: #e10600; }
+        .btn-update { background: #f39c12; }
+        .btn-delete { background: #333; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border-bottom: 1px solid #ddd; padding: 12px; text-align: left; }
-        th { background: #15151e; color: white; }
-        .delete-btn { background: #333; padding: 5px 10px; font-size: 0.8em; }
+        th, td { border-bottom: 1px solid #ddd; padding: 10px; text-align: left; }
     </style>
 </head>
 <body>
-
     <div class="container">
-        <h2>Fetch API CRUD (5. feladat)</h2>
+        <h2>Fetch API CRUD (Szerverrel + UPDATE)</h2>
         
-        <div class="input-group">
-            <input type="text" id="ujPilotaNev" placeholder="Írd be a pilóta nevét...">
-            <button onclick="hozzaadPilota()">Hozzáadás</button>
+        <div class="form-group">
+            <h3 id="formTitle">Új pilóta hozzáadása</h3>
+            <input type="hidden" id="editId">
+            <input type="text" id="pNev" placeholder="Név">
+            <input type="text" id="pNemzet" placeholder="Nemzet">
+            <button id="submitBtn" class="btn-add" onclick="handleSubmit()">Hozzáadás</button>
+            <button id="cancelBtn" style="display:none; background:gray;" onclick="resetForm()">Mégse</button>
         </div>
 
-        <table id="pilotaTabla">
-            <thead>
-                <tr>
-                    <th>Azonosító</th>
-                    <th>Név</th>
-                    <th>Művelet</th>
-                </tr>
-            </thead>
-            <tbody>
-                </tbody>
+        <table id="pTable">
+            <thead><tr><th>ID</th><th>Név</th><th>Nemzet</th><th>Műveletek</th></tr></thead>
+            <tbody></tbody>
         </table>
-
-        <p style="margin-top: 20px;">
-            <a href="index.html" style="color: #666;">← Vissza a főoldalra</a>
-        </p>
+        <br><a href="index.html">Vissza a főoldalra</a>
     </div>
 
     <script>
         const API_URL = 'http://localhost:3000/pilotak';
 
-        // 1. READ - Adatok lekérése a szerverről (GET)
-        async function betolt() {
-            try {
-                const valasz = await fetch(API_URL);
-                const adatok = await valasz.json();
-                const tbody = document.querySelector('#pilotaTabla tbody');
-                
-                tbody.innerHTML = ''; 
-                adatok.forEach(p => {
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>${p.id}</td>
-                            <td>${p.nev}</td>
-                            <td><button class="delete-btn" onclick="torolPilota('${p.id}')">Törlés</button></td>
-                        </tr>
-                    `;
-                });
-            } catch (h") {
-                console.error("Hiba történt:", h);
+        async function loadData() {
+            const res = await fetch(API_URL);
+            const data = await res.json();
+            const tbody = document.querySelector('#pTable tbody');
+            tbody.innerHTML = data.map(p => `
+                <tr>
+                    <td>${p.id}</td>
+                    <td>${p.nev}</td>
+                    <td>${p.nemzet}</td>
+                    <td>
+                        <button class="btn-update" onclick="prepareUpdate('${p.id}', '${p.nev}', '${p.nemzet}')">Szerkesztés</button>
+                        <button class="btn-delete" onclick="deleteItem('${p.id}')">Törlés</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function handleSubmit() {
+            const id = document.getElementById('editId').value;
+            const nev = document.getElementById('pNev').value;
+            const nemzet = document.getElementById('pNemzet').value;
+            if(!nev) return;
+
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `${API_URL}/${id}` : API_URL;
+
+            await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nev, nemzet, nem: 'F', szuldat: '' })
+            });
+            resetForm();
+            loadData();
+        }
+
+        function prepareUpdate(id, nev, nemzet) {
+            document.getElementById('editId').value = id;
+            document.getElementById('pNev').value = nev;
+            document.getElementById('pNemzet').value = nemzet;
+            document.getElementById('submitBtn').innerText = "Módosítás mentése";
+            document.getElementById('formTitle').innerText = "Pilóta szerkesztése";
+            document.getElementById('cancelBtn').style.display = "inline";
+        }
+
+        function resetForm() {
+            document.getElementById('editId').value = '';
+            document.getElementById('pNev').value = '';
+            document.getElementById('pNemzet').value = '';
+            document.getElementById('submitBtn').innerText = "Hozzáadás";
+            document.getElementById('formTitle').innerText = "Új pilóta hozzáadása";
+            document.getElementById('cancelBtn').style.display = "none";
+        }
+
+        async function deleteItem(id) {
+            if(confirm("Törlöd?")) {
+                await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                loadData();
             }
         }
 
-        // 2. CREATE - Új adat beküldése a szerverre (POST)
-        async function hozzaadPilota() {
-            const nevMezo = document.getElementById('ujPilotaNev');
-            const nev = nevMezo.value;
-            
-            if (!nev) return alert("Adj meg egy nevet!");
-
-            await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    nev: nev,
-                    nem: "F",
-                    szuldat: "2000.01.01",
-                    nemzet: "ismeretlen"
-                })
-            });
-
-            nevMezo.value = '';
-            betolt(); // Lista frissítése
-        }
-
-        // 3. DELETE - Adat törlése a szerverről (DELETE)
-        async function torolPilota(id) {
-            if (!confirm("Biztosan törlöd ezt a pilótát a szerverről?")) return;
-
-            await fetch(`${API_URL}/${id}`, {
-                method: 'DELETE'
-            });
-            
-            betolt(); // Lista frissítése
-        }
-
-        // Indításkor adatok betöltése
-        window.onload = betolt;
+        window.onload = loadData;
     </script>
 </body>
 </html>
