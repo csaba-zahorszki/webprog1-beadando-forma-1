@@ -1,17 +1,88 @@
-<!DOCTYPE html> 
-<html lang="hu"> 
-<head> 
-    </head> 
-<body> 
-    <header><h1>Web programozás-1 Előadás Házi feladat</h1></header> 
-    <nav> 
-        <a href="index.html">Főoldal</a> 
-        <a href="axios.html">Axios</a> 
-    </nav> 
-    <main style="display: flex; flex-direction: column;"> 
-        <div style="background: #fff3cd; padding: 15px; text-align: center; color: #856404; font-weight: bold;"> 
-        </div> 
-        <iframe src="react-axios/dist/index.html" style="width: 100%; flex: 1; min-height: 700px; border: none;"></iframe> 
-    </main> 
-</body> 
-</html> 
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <title>Axios - Forma-1 Nyilvántartó</title>
+    <style>
+        /* A főoldalad stílusai */
+        body {
+            margin: 0;
+            font-family: sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        header {
+            background-color: #c82323; /* F1-es piros szín */
+            color: white;
+            text-align: center;
+            padding: 30px 20px;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 2.2em;
+        }
+        nav {
+            background-color: #15151e; /* Sötét menüsáv */
+            text-align: center;
+            padding: 15px 0;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin: 0 15px;
+        }
+        nav a:hover {
+            color: #c82323; /* Pirosra vált, ha ráviszed az egeret */
+        }
+        main {
+            flex: 1; /* Kitölti az üres helyet a menü és a lábléc között */
+            display: flex;
+            flex-direction: column;
+        }
+        /* Az iframe (a React alkalmazásod) stílusa */
+        iframe {
+            width: 100%;
+            flex: 1;
+            border: none;
+            min-height: 800px;
+        }
+        footer {
+            background-color: #15151e;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 0.9em;
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Web programozás-1 Beadandó Feladat</h1>
+    </header>
+
+    <nav>
+        <a href="index.html">Főoldal</a>
+        <a href="jscrud.html">JavaScript CRUD</a>
+        <a href="reactcrud.html">React CRUD</a>
+        <a href="spa.html">SPA</a>
+        <a href="fetchapi.html">Fetch API</a>
+        <a href="axios.html">Axios</a>
+        <a href="oojs.html">OOJS</a>
+    </nav>
+
+    <main>
+        <iframe src="react-axios/dist/index.html"></iframe>
+    </main>
+
+    <footer>
+        Készítette: Zahorszki Csaba [Q3R1ZR] és Fajcsák Gábor [DYE996]
+    </footer>
+
+</body>
+</html>
