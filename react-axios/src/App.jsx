@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 
-// A szerverünk címe (amit a json-server indított)
-const API_URL = 'http://localhost:3000/nagydijak'
+// 1. JAVÍTÁS: Átírtuk 3001-es portra, mert itt fut a nagydijak.db.json!
+const API_URL = 'http://localhost:3001/nagydijak'
 
 export default function App() {
   const [nagydijak, setNagydijak] = useState([])
   const [formData, setFormData] = useState({ datum: '', nev: '', helyszin: '' })
   const [editingId, setEditingId] = useState(null)
 
-  // 1. READ: Adatok betöltése az adatbázisból induláskor
+  // READ: Adatok betöltése az adatbázisból induláskor
   useEffect(() => {
     fetchData()
   }, [])
@@ -17,55 +17,47 @@ export default function App() {
   const fetchData = async () => {
     try {
       const response = await axios.get(API_URL)
-      setNagydijak(response.data) // Az Axios automatikusan JSON-t csinál belőle!
+      setNagydijak(response.data) 
     } catch (error) {
       console.error("Hiba az adatok lekérésekor:", error)
     }
   }
 
-  // 2. CREATE & UPDATE: Mentés az adatbázisba
+  // CREATE & UPDATE: Mentés az adatbázisba
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
       if (editingId) {
-        // Módosítás (PUT)
         await axios.put(`${API_URL}/${editingId}`, formData)
       } else {
-        // Új létrehozása (POST)
         await axios.post(API_URL, formData)
       }
-      // Form ürítése
       setFormData({ datum: '', nev: '', helyszin: '' })
       setEditingId(null)
-      fetchData() // Újratöltjük a friss listát a szerverről!
+      fetchData() 
     } catch (error) {
       console.error("Hiba mentéskor:", error)
     }
   }
 
-  // 3. DELETE: Törlés az adatbázisból
+  // DELETE: Törlés az adatbázisból
   const handleDelete = async (id) => {
     if (window.confirm("Biztosan törlöd ezt a nagydíjat az adatbázisból?")) {
       try {
         await axios.delete(`${API_URL}/${id}`)
-        fetchData() // Frissítjük a listát
+        fetchData() 
       } catch (error) {
         console.error("Hiba törléskor:", error)
       }
     }
   }
 
-  // Szerkesztés előkészítése (Adatok betöltése a formba)
+  // Szerkesztés előkészítése
   const handleEdit = (gp) => {
     setFormData({ datum: gp.datum, nev: gp.nev, helyszin: gp.helyszin })
     setEditingId(gp.id)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
-
-  // Belső stílusok a kódhoz
-  const inputStyle = { width: '100%', padding: '10px', margin: '5px 0 15px', boxSizing: 'border-box' }
-  const btnStyle = { background: '#e10600', color: 'white', padding: '10px 15px', border: 'none', cursor: 'pointer', marginRight: '10px', fontWeight: 'bold' }
-  const tdStyle = { padding: '12px', borderBottom: '1px solid #ddd', textAlign: 'left' }
 
   return (
     <div className="container" style={{ padding: '20px', fontFamily: 'Arial', backgroundColor: '#f4f4f4', minHeight: '100vh' }}>
@@ -84,7 +76,8 @@ export default function App() {
 
       <table style={{ width: '100%', borderCollapse: 'collapse', background: 'white', boxShadow: '0 0 10px rgba(0,0,0,0.1)' }}>
         <thead>
-          <tr style={{ background: '#15151e', color: white }}>
+          {/* 2. JAVÍTÁS: A white szót betettük idézőjelek közé! */}
+          <tr style={{ background: '#15151e', color: 'white' }}>
             <th style={tdStyle}>Dátum</th>
             <th style={tdStyle}>Név</th>
             <th style={tdStyle}>Helyszín</th>
@@ -108,3 +101,8 @@ export default function App() {
     </div>
   )
 }
+
+// 3. JAVÍTÁS: A stílusokat egyszer definiáljuk, tisztán, a fájl legalján.
+const inputStyle = { width: '100%', padding: '10px', margin: '5px 0 15px', boxSizing: 'border-box' } 
+const btnStyle = { background: '#e10600', color: 'white', padding: '10px 15px', border: 'none', cursor: 'pointer', marginRight: '10px', fontWeight: 'bold' } 
+const tdStyle = { padding: '12px', borderBottom: '1px solid #ddd', textAlign: 'left' }
