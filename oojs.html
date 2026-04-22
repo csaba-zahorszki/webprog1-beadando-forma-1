@@ -2,47 +2,126 @@
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
-    <title>OOJS Grafika (7. Feladat)</title>
+    <title>OOJS Grafika - Web programozás-1</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #15151e; font-family: 'Segoe UI', sans-serif; color: white; }
-        #vezerlo { position: absolute; top: 20px; left: 20px; z-index: 10; background: rgba(0,0,0,0.8); padding: 25px; border-radius: 8px; border-top: 4px solid #e10600; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .alakzat { position: absolute; cursor: pointer; transition: transform 0.2s, opacity 0.2s; box-shadow: 0 0 15px rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.5); }
+        /* 1. Alap elrendezés (Flexbox), hogy a lábléc alul maradjon */
+        body { 
+            margin: 0; 
+            font-family: sans-serif; 
+            background-color: #f4f4f4; 
+            display: flex; 
+            flex-direction: column; 
+            min-height: 100vh;
+            overflow-x: hidden; 
+        }
+
+        /* 2. Egységes Fejléc és Menü */
+        header { background-color: #c82323; color: white; text-align: center; padding: 30px 20px; }
+        header h1 { margin: 0; font-size: 2.2em; }
+        nav { background-color: #15151e; text-align: center; padding: 15px 0; z-index: 100; }
+        nav a { color: white; text-decoration: none; font-weight: bold; font-size: 1.1em; margin: 0 15px; }
+        nav a:hover { color: #c82323; }
+
+        /* 3. A Rajztábla (Main terület) */
+        main { 
+            flex: 1; 
+            position: relative; 
+            overflow: hidden; 
+            background-color: #1a1a1a; 
+        }
+
+        /* Vezérlőpanel stílusa - KÖZÉPRE IGAZÍTVA */
+        #vezerlo { 
+            position: absolute; 
+            top: 20px; 
+            left: 50%; /* Középre toljuk */
+            transform: translateX(-50%); /* Visszahúzzuk a saját szélessége felével */
+            z-index: 50; 
+            background: rgba(0,0,0,0.85); 
+            padding: 25px; 
+            border-radius: 8px; 
+            border-top: 4px solid #e10600; 
+            color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); 
+            text-align: center; /* Belül is középen legyenek a gombok */
+            min-width: 350px;
+        }
+
+        /* Alakzatok stílusa */
+        .alakzat { 
+            position: absolute; 
+            cursor: pointer; 
+            transition: transform 0.2s, opacity 0.2s; 
+            box-shadow: 0 0 15px rgba(255,255,255,0.2); 
+            border: 2px solid rgba(255,255,255,0.5); 
+        }
         .alakzat:hover { transform: scale(1.1); opacity: 0.8; }
-        button { padding: 10px 20px; margin: 5px; cursor: pointer; background-color: #e10600; color: white; border: none; border-radius: 4px; font-weight: bold; transition: 0.3s; }
-        button:hover { background-color: #b30500; }
-        a { color: #ccc; text-decoration: none; display: inline-block; margin-top: 15px; }
-        a:hover { color: white; }
+
+        button { 
+            padding: 10px 15px; 
+            margin: 5px; 
+            cursor: pointer; 
+            background-color: #e10600; 
+            color: white; 
+            border: none; 
+            border-radius: 4px; 
+            font-weight: bold; 
+            transition: 0.2s;
+        }
+        button:hover { background-color: #b30500; transform: translateY(-2px); }
+
+        footer { background-color: #15151e; color: white; text-align: center; padding: 20px; font-size: 0.9em; z-index: 100; }
     </style>
 </head>
 <body>
 
-    <div id="vezerlo">
-        <h2>7. Feladat: OOJS Alakzatok</h2>
-        <p>Kattints a gombokra az alakzatok generálásához!<br><small>(Ha rákattintasz egy alakzatra, az eltűnik.)</small></p>
-        <button onclick="kellEgyKor()">🔴 Kör generálása</button>
-        <button onclick="kellEgyNegyzet()">🟦 Négyzet generálása</button>
-        <br>
-        <a href="index.html">← Vissza a főoldalra</a>
-    </div>
+    <header>
+        <h1>Web programozás-1 Beadandó Feladat</h1>
+    </header>
+
+    <nav>
+        <a href="index.html">Főoldal</a>
+        <a href="jscrud.html">JavaScript CRUD</a>
+        <a href="reactcrud.html">React CRUD</a>
+        <a href="spa.html">SPA</a>
+        <a href="fetchapi.html">Fetch API</a>
+        <a href="axios.html">Axios</a>
+        <a href="oojs.html">OOJS</a>
+    </nav>
+
+    <main id="canvas">
+        <div id="vezerlo">
+            <h2 style="margin-top:0;">7. Feladat: OOJS Alakzatok</h2>
+            <p>Kattints a gombokra az alakzatok generálásához!<br>
+            <small style="color: #ccc;">(Kattints egy alakzatra a törléshez.)</small></p>
+            <button onclick="kellEgyKor()">🔴 Kör generálása</button>
+            <button onclick="kellEgyNegyzet()">🟦 Négyzet generálása</button>
+        </div>
+    </main>
+
+    <footer>
+        Készítette: Zahorszki Csaba [Q3R1ZR] és Fajcsák Gábor [DYE996]
+    </footer>
 
     <script>
-        // 1. Alaposztály (class) létrehozása
+        const canvas = document.getElementById('canvas');
+
         class Alakzat {
-            
-            // 2. Konstruktor (constructor) beállítása
             constructor(nev) {
                 this.nev = nev;
-                this.meret = Math.floor(Math.random() * 80) + 40; // Véletlen méret 40 és 120px között
-                this.x = Math.random() * (window.innerWidth - 150); // Véletlen X pozíció
-                this.y = Math.random() * (window.innerHeight - 150); // Véletlen Y pozíció
-                this.szin = `hsl(${Math.random() * 360}, 80%, 50%)`; // Véletlen szín
+                this.meret = Math.floor(Math.random() * 80) + 40;
                 
-                // Létrehozzuk a HTML elemet (DOM)
+                const rect = canvas.getBoundingClientRect();
+                // Úgy számolunk, hogy ne lógjanak ki és ne a menü alá kerüljenek
+                this.x = Math.random() * (rect.width - this.meret - 40) + 20;
+                this.y = Math.random() * (rect.height - this.meret - 40) + 20;
+                
+                this.szin = `hsl(${Math.random() * 360}, 80%, 50%)`;
+                
                 this.elem = document.createElement('div');
                 this.elem.className = 'alakzat';
             }
 
-            // 3. Metódusok definiálása
             megjelenit() {
                 this.elem.style.width = this.meret + 'px';
                 this.elem.style.height = this.meret + 'px';
@@ -50,31 +129,24 @@
                 this.elem.style.left = this.x + 'px';
                 this.elem.style.top = this.y + 'px';
 
-                // Bónusz: rákattintáskor törlődik az alakzat
                 this.elem.onclick = () => this.elem.remove();
-
-                // 4. document.body.appendChild alkalmazása
-                document.body.appendChild(this.elem);
+                canvas.appendChild(this.elem);
             }
         }
 
-        // 5. Öröklődés (extends) alkalmazása - A Kör örökli az Alakzat tulajdonságait
         class Kor extends Alakzat {
             constructor() {
-                // 6. Ősosztály hívása (super)
                 super('Kör'); 
-                this.elem.style.borderRadius = '50%'; // Ebből tudja a böngésző, hogy kör alakú legyen
+                this.elem.style.borderRadius = '50%';
             }
         }
 
-        // Másik öröklődés a Négyzetnek
         class Negyzet extends Alakzat {
             constructor() {
-                super('Négyzet'); // Itt is hívjuk az ősosztályt
+                super('Négyzet');
             }
         }
 
-        // Gombokhoz kötött indító függvények
         function kellEgyKor() {
             const ujKor = new Kor();
             ujKor.megjelenit();
@@ -85,6 +157,5 @@
             ujNegyzet.megjelenit();
         }
     </script>
-
 </body>
 </html>
