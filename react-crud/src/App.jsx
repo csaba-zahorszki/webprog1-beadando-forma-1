@@ -12,7 +12,6 @@ function App() {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
   useEffect(() => {
-    // ITT A TITOK: Sima gp.txt, perjel nélkül!
     fetch('gp.txt')
       .then(response => response.text())
       .then(text => {
@@ -112,7 +111,14 @@ function App() {
 
       <div style={{ background: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 0 10px rgba(0,0,0,0.1)', marginBottom: '20px' }}>
         <h3 style={{ marginTop: 0 }}>Keresés nagydíj neve alapján</h3>
-        <input type="text" placeholder="Gépeld be a nagydíj nevét..." value={searchTerm} onChange={handleSearchChange} style={{ width: '100%', padding: '10px', boxSizing: 'border-box' }}/>
+        {/* A KERESŐMEZŐ KIVILÁGÍTÁSA */}
+        <input 
+          type="text" 
+          placeholder="Gépeld be a nagydíj nevét..." 
+          value={searchTerm} 
+          onChange={handleSearchChange} 
+          style={{ width: '100%', padding: '10px', boxSizing: 'border-box', backgroundColor: 'white', color: 'black', border: '1px solid #ccc', borderRadius: '4px' }}
+        />
       </div>
 
       <div style={{ background: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 0 10px rgba(0,0,0,0.1)', marginBottom: '20px' }}>
@@ -151,15 +157,16 @@ function App() {
 
       <div style={{ marginTop: '20px', textAlign: 'center' }}>
         <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={safeCurrentPage <= 1} style={{...btnStyle, background: safeCurrentPage <= 1 ? '#ccc' : '#e10600'}}>Előző</button>
-        <span style={{ margin: '0 20px', fontWeight: 'bold' }}>{safeCurrentPage}. oldal a {totalPages}-ből</span>
+        <span style={{ margin: '0 20px', fontWeight: 'bold', color: 'black' }}>{safeCurrentPage}. oldal a {totalPages}-ből</span>
         <button onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={safeCurrentPage >= totalPages} style={{...btnStyle, background: safeCurrentPage >= totalPages ? '#ccc' : '#e10600'}}>Következő</button>
       </div>
     </div>
   )
 }
 
-const inputStyle = { width: '100%', padding: '10px', margin: '5px 0 15px', boxSizing: 'border-box' };
+/* AZ ŰRLAP MEZŐK KIVILÁGÍTÁSA A STÍLUSOKNÁL */
+const inputStyle = { width: '100%', padding: '10px', margin: '5px 0 15px', boxSizing: 'border-box', backgroundColor: 'white', color: 'black', border: '1px solid #ccc', borderRadius: '4px' };
 const btnStyle = { background: '#e10600', color: 'white', padding: '10px 15px', border: 'none', cursor: 'pointer', marginRight: '10px', fontWeight: 'bold', borderRadius: '4px' };
-const tdStyle = { padding: '12px', borderBottom: '1px solid #ddd', textAlign: 'left' };
+const tdStyle = { padding: '12px', borderBottom: '1px solid #ddd', textAlign: 'left', color: 'black' };
 
 export default App

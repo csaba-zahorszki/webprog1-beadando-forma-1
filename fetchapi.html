@@ -1,39 +1,72 @@
 <!DOCTYPE html>
 <html lang="hu">
 <head>
-    <meta charset="UTF-8"><title>Fetch API CRUD + Update</title>
+    <meta charset="UTF-8">
+    <title>Fetch API CRUD + Update</title>
     <style>
-        body { font-family: sans-serif; background: #f4f4f4; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        /* 1. Alap beállítások, hogy a fejléc kifusson a szélre, a lábléc pedig lent maradjon */
+        body { margin: 0; font-family: sans-serif; background: #f4f4f4; display: flex; flex-direction: column; min-height: 100vh; }
+        
+        /* 2. Közös Menü, Fejléc és Lábléc stílusok */
+        header { background-color: #c82323; color: white; text-align: center; padding: 30px 20px; }
+        header h1 { margin: 0; font-size: 2.2em; }
+        nav { background-color: #15151e; text-align: center; padding: 15px 0; }
+        nav a { color: white; text-decoration: none; font-weight: bold; font-size: 1.1em; margin: 0 15px; }
+        nav a:hover { color: #c82323; }
+        footer { background-color: #15151e; color: white; text-align: center; padding: 20px; font-size: 0.9em; margin-top: auto; }
+        main { flex: 1; padding: 40px 20px; } /* Ide kerül a te tartalmad */
+
+        /* 3. A te eredeti táblázat és form stílusaid (kicsit szépítve) */
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
         .form-group { margin-bottom: 15px; background: #eee; padding: 15px; border-radius: 5px; }
-        input { padding: 8px; margin-right: 5px; width: 200px; }
-        button { padding: 8px 15px; cursor: pointer; border: none; border-radius: 3px; color: white; }
+        input { padding: 8px; margin-right: 5px; width: 200px; border: 1px solid #ccc; border-radius: 4px; }
+        button { padding: 8px 15px; cursor: pointer; border: none; border-radius: 3px; color: white; font-weight: bold; }
         .btn-add { background: #e10600; }
         .btn-update { background: #f39c12; }
         .btn-delete { background: #333; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border-bottom: 1px solid #ddd; padding: 10px; text-align: left; }
+        th, td { border-bottom: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background: #15151e; color: white; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Fetch API CRUD (Szerverrel + UPDATE)</h2>
-        
-        <div class="form-group">
-            <h3 id="formTitle">Új pilóta hozzáadása</h3>
-            <input type="hidden" id="editId">
-            <input type="text" id="pNev" placeholder="Név">
-            <input type="text" id="pNemzet" placeholder="Nemzet">
-            <button id="submitBtn" class="btn-add" onclick="handleSubmit()">Hozzáadás</button>
-            <button id="cancelBtn" style="display:none; background:gray;" onclick="resetForm()">Mégse</button>
-        </div>
 
-        <table id="pTable">
-            <thead><tr><th>ID</th><th>Név</th><th>Nemzet</th><th>Műveletek</th></tr></thead>
-            <tbody></tbody>
-        </table>
-        <br><a href="index.html">Vissza a főoldalra</a>
-    </div>
+    <header>
+        <h1>Web programozás-1 Beadandó Feladat</h1>
+    </header>
+    <nav>
+        <a href="index.html">Főoldal</a>
+        <a href="jscrud.html">JavaScript CRUD</a>
+        <a href="reactcrud.html">React CRUD</a>
+        <a href="spa.html">SPA</a>
+        <a href="fetchapi.html">Fetch API</a>
+        <a href="axios.html">Axios</a>
+        <a href="oojs.html">OOJS</a>
+    </nav>
+
+    <main>
+        <div class="container">
+            <h2 style="color: #c82323; margin-top: 0;">Fetch API CRUD (Szerverrel + UPDATE)</h2>
+            
+            <div class="form-group">
+                <h3 id="formTitle" style="margin-top: 0;">Új pilóta hozzáadása</h3>
+                <input type="hidden" id="editId">
+                <input type="text" id="pNev" placeholder="Név">
+                <input type="text" id="pNemzet" placeholder="Nemzet">
+                <button id="submitBtn" class="btn-add" onclick="handleSubmit()">Hozzáadás</button>
+                <button id="cancelBtn" style="display:none; background:gray;" onclick="resetForm()">Mégse</button>
+            </div>
+
+            <table id="pTable">
+                <thead><tr><th>ID</th><th>Név</th><th>Nemzet</th><th>Műveletek</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </main>
+
+    <footer>
+        Készítette: Zahorszki Csaba [Q3R1ZR] és Fajcsák Gábor [DYE996]
+    </footer>
 
     <script>
         const API_URL = 'http://localhost:3000/pilotak';

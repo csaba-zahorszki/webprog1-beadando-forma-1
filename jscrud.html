@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <title>JavaScript CRUD - F1</title>
+    <style>
+        body { margin: 0; font-family: sans-serif; background-color: #f4f4f4; display: flex; flex-direction: column; min-height: 100vh; }
+        header { background-color: #c82323; color: white; text-align: center; padding: 30px 20px; }
+        header h1 { margin: 0; font-size: 2.2em; }
+        nav { background-color: #15151e; text-align: center; padding: 15px 0; }
+        nav a { color: white; text-decoration: none; font-weight: bold; font-size: 1.1em; margin: 0 15px; }
+        nav a:hover { color: #c82323; }
+        main { flex: 1; padding: 40px; max-width: 800px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+        footer { background-color: #15151e; color: white; text-align: center; padding: 20px; font-size: 0.9em; margin-top: auto; }
+        
+        /* Űrlap és Táblázat stílusok */
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        input { width: calc(100% - 22px); padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #c82323; color: white; border: none; padding: 10px 15px; cursor: pointer; font-weight: bold; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
+        th { background: #15151e; color: white; }
+    </style>
+</head>
+<body>
+
+    <header><h1>Web programozás-1 Beadandó Feladat</h1></header>
+    <nav>
+        <a href="index.html">Főoldal</a>
+        <a href="jscrud.html">JavaScript CRUD</a>
+        <a href="reactcrud.html">React CRUD</a>
+        <a href="spa.html">SPA</a>
+        <a href="fetchapi.html">Fetch API</a>
+        <a href="axios.html">Axios</a>
+        <a href="oojs.html">OOJS</a>
+    </nav>
+
+    <main>
+        <h2 style="color: #c82323;">Tiszta JavaScript CRUD (Pilóták)</h2>
+        
+        <div class="card">
+            <h3 id="formTitle">Új Pilóta Hozzáadása</h3>
+            <input type="hidden" id="editId">
+            <input type="text" id="pNev" placeholder="Pilóta neve (pl. Fernando Alonso)">
+            <input type="text" id="pNemzet" placeholder="Nemzetiség (pl. spanyol)">
+            <button onclick="savePilot()" id="saveBtn">Mentés</button>
+        </div>
+
+        <table id="pilotTable">
+            <thead>
+                <tr><th>Név</th><th>Nemzetiség</th><th>Műveletek</th></tr>
+            </thead>
+            <tbody>
+                </tbody>
+        </table>
+    </main>
+
+    <footer>Készítette: Zahorszki Csaba [Q3R1ZR] és Fajcsák Gábor [DYE996]</footer>
+
+    <script>
+        // Adatok lekérése a memóriából, vagy üres tömb, ha még nincs semmi
+        let pilots = JSON.parse(localStorage.getItem('f1_pilots')) || [];
+
+        function renderTable() {
+            const tbody = document.querySelector('#pilotTable tbody');
+            tbody.innerHTML = ''; // Táblázat törlése újrarajzolás előtt
+            
+            pilots.forEach((pilot, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${pilot.nev}</td>
+                    <td>${pilot.nemzet}</td>
+                    <td>
+                        <button style="background: #f39c12;" onclick="editPilot(${index})">Szerkesztés</button>
+                        <button style="background: #333;" onclick="deletePilot(${index})">Törlés</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function savePilot() {
+            const id = document.getElementById('editId').value;
+            const nev = document.getElementById('pNev').value;
+            const nemzet = document.getElementById('pNemzet').value;
+
+            if (!nev || !nemzet) return alert("Minden mezőt ki kell tölteni!");
+
+            if (id === "") {
+                // Új hozzáadása (Create)
+                pilots.push({ nev, nemzet });
+            } else {
+                // Módosítás (Update)
+                pilots[id] = { nev, nemzet };
+                document.getElementById('editId').value = "";
+                document.getElementById('formTitle').innerText = "Új Pilóta Hozzáadása";
+            }
+
+            localStorage.setItem('f1_pilots', JSON.stringify(pilots)); // Mentés a memóriába
+            document.getElementById('pNev').value = "";
+            document.getElementById('pNemzet').value = "";
+            renderTable();
+        }
+
+        function deletePilot(index) {
+            if (confirm("Biztosan törlöd a pilótát?")) {
+                pilots.splice(index, 1); // Törlés a tömbből (Delete)
+                localStorage.setItem('f1_pilots', JSON.stringify(pilots));
+                renderTable();
+            }
+        }
+
+        function editPilot(index) {
+            document.getElementById('editId').value = index;
+            document.getElementById('pNev').value = pilots[index].nev;
+            document.getElementById('pNemzet').value = pilots[index].nemzet;
+            document.getElementById('formTitle').innerText = "Pilóta Szerkesztése";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Oldal betöltésekor táblázat kirajzolása (Read)
+        window.onload = renderTable;
+    </script>
+</body>
+</html>
