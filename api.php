@@ -1,60 +1,61 @@
 <?php
-header("Content-Type: application/json");
+header("Content-Type: application/json; charset=utf-8");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE");
 header("Access-Control-Allow-Headers: Content-Type");
 
-// A TANÁR ÁLTAL KÉRT PDO CSATLAKOZÁS (Írd át a saját adataidra!)
+// NETHELY ADATOK - Írd át a sajátjaidra!
+$host = 'localhost'; 
+$dbname = 'beadando_anybody';
+$user = 'beadando_anybody';
+$pass = 'M1szt3rM1n1szt3r!';
+
 try {
-    $dbh = new PDO('mysql:host=localhost;dbname=IDE_AZ_ADATBÁZIS_NEVE', 
-                   'IDE_A_FELHASZNÁLÓNÉV', 
-                   'IDE_A_JELSZÓ', 
-                   array(PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION));
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $pass, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+    ]);
 } catch (PDOException $e) {
-    die(json_encode(["error" => $e->getMessage()]));
+    die(json_encode(["error" => "Kapcsolódási hiba: " . $e->getMessage()]));
 }
 
 $method = $_SERVER['REQUEST_METHOD'];
-$table = $_GET['table']; // 'pilotak' vagy 'nagydijak'
 
-// 1. LISTÁZÁS (READ)
-if ($method === 'GET') {
-    $stmt = $dbh->query("SELECT * FROM $table");
-    echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
-}
+switch ($method) {
+    case 'GET':
+        // Csak az utolsó 100-at kérjük le, hogy ne fagyjon le a böngésző a 2259 sortól!
+        $stmt = $pdo->query("SELECT * FROM eredmenyek ORDER BY id DESC LIMIT 100");
+        echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+        break;
 
-// 2. HOZZÁADÁS (CREATE)
-if ($method === 'POST') {
-    $input = json_decode(file_get_contents('php://input'), true);
-    if ($table === 'pilotak') {
-        $stmt = $dbh->prepare("INSERT INTO pilotak (nev, nemzet) VALUES (?, ?)");
-        $stmt->execute([$input['nev'], $input['nemzet']]);
-    } else {
-        $stmt = $dbh->prepare("INSERT INTO nagydijak (datum, nev, helyszin) VALUES (?, ?, ?)");
-        $stmt->execute([$input['datum'], $input['nev'], $input['helyszin']]);
-    }
-    echo json_encode(["status" => "success"]);
-}
+    case 'POST':
+        $data = json_decode(file_get_contents("php://input"), true);
+        $sql = "INSERT INTO eredmenyek (datum, pilotaaz, helyezes, hiba, csapat, tipus, motor) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$data['datum'], $data['pilotaaz'], $data['helyezes'], $data['hiba'], $data['csapat'], $data['tipus'], $data['motor']]);
+        echo json_encode(["status" => "Mentve", "id" => $pdo->lastInsertId()]);
+        break;
 
-// 3. MÓDOSÍTÁS (UPDATE)
-if ($method === 'PUT') {
-    $id = $_GET['id'];
-    $input = json_decode(file_get_contents('php://input'), true);
-    if ($table === 'pilotak') {
-        $stmt = $dbh->prepare("UPDATE pilotak SET nev=?, nemzet=? WHERE id=?");
-        $stmt->execute([$input['nev'], $input['nemzet'], $id]);
-    } else {
-        $stmt = $dbh->prepare("UPDATE nagydijak SET datum=?, nev=?, helyszin=? WHERE id=?");
-        $stmt->execute([$input['datum'], $input['nev'], $input['helyszin'], $id]);
-    }
-    echo json_encode(["status" => "updated"]);
-}
+    case 'PUT':
+        $id = explode('/', $_SERVER['PATH_INFO'] ?? '')[1] ?? null;
+        if (!$id) {
+             $data = json_decode(file_get_contents("php://input"), true);
+             $id = $data['id'] ?? null;
+        }
+        $data = json_decode(file_get_contents("php://input"), true);
+        $sql = "UPDATE eredmenyek SET datum=?, pilotaaz=?, helyezes=?, hiba=?, csapat=?, tipus=?, motor=? WHERE id=?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$data['datum'], $data['pilotaaz'], $data['helyezes'], $data['hiba'], $data['csapat'], $data['tipus'], $data['motor'], $id]);
+        echo json_encode(["status" => "Frissítve"]);
+        break;
 
-// 4. TÖRLÉS (DELETE)
-if ($method === 'DELETE') {
-    $id = $_GET['id'];
-    $stmt = $dbh->prepare("DELETE FROM $table WHERE id=?");
-    $stmt->execute([$id]);
-    echo json_encode(["status" => "deleted"]);
+    case 'DELETE':
+        $path = explode('/', $_SERVER['PATH_INFO'] ?? '');
+        $id = end($path);
+        if ($id) {
+            $stmt = $pdo->prepare("DELETE FROM eredmenyek WHERE id = ?");
+            $stmt->execute([$id]);
+            echo json_encode(["status" => "Törölve"]);
+        }
+        break;
 }
 ?>

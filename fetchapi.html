@@ -2,30 +2,27 @@
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
-    <title>Fetch API CRUD + Update</title>
+    <title>Fetch API CRUD - Eredmények</title>
     <style>
-        /* 1. Alap beállítások, hogy a fejléc kifusson a szélre, a lábléc pedig lent maradjon */
         body { margin: 0; font-family: sans-serif; background: #f4f4f4; display: flex; flex-direction: column; min-height: 100vh; }
-        
-        /* 2. Közös Menü, Fejléc és Lábléc stílusok */
         header { background-color: #c82323; color: white; text-align: center; padding: 30px 20px; }
         header h1 { margin: 0; font-size: 2.2em; }
         nav { background-color: #15151e; text-align: center; padding: 15px 0; }
         nav a { color: white; text-decoration: none; font-weight: bold; font-size: 1.1em; margin: 0 15px; }
         nav a:hover { color: #c82323; }
         footer { background-color: #15151e; color: white; text-align: center; padding: 20px; font-size: 0.9em; margin-top: auto; }
-        main { flex: 1; padding: 40px 20px; } /* Ide kerül a te tartalmad */
+        main { flex: 1; padding: 40px 20px; } 
 
-        /* 3. A te eredeti táblázat és form stílusaid (kicsit szépítve) */
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        .form-group { margin-bottom: 15px; background: #eee; padding: 15px; border-radius: 5px; }
-        input { padding: 8px; margin-right: 5px; width: 200px; border: 1px solid #ccc; border-radius: 4px; }
-        button { padding: 8px 15px; cursor: pointer; border: none; border-radius: 3px; color: white; font-weight: bold; }
+
+        .container { max-width: 1400px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 15px; background: #eee; padding: 15px; border-radius: 5px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; flex: 1; min-width: 120px; }
+        button { padding: 8px 15px; cursor: pointer; border: none; border-radius: 3px; color: white; font-weight: bold; white-space: nowrap; }
         .btn-add { background: #e10600; }
         .btn-update { background: #f39c12; }
         .btn-delete { background: #333; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border-bottom: 1px solid #ddd; padding: 12px; text-align: left; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.9em; }
+        th, td { border-bottom: 1px solid #ddd; padding: 10px; text-align: left; }
         th { background: #15151e; color: white; }
     </style>
 </head>
@@ -46,19 +43,35 @@
 
     <main>
         <div class="container">
-            <h2 style="color: #c82323; margin-top: 0;">Fetch API CRUD (Szerverrel + UPDATE)</h2>
+            <h2 style="color: #c82323; margin-top: 0;">F1 Eredmények (Szerverrel + MySQL)</h2>
             
             <div class="form-group">
-                <h3 id="formTitle" style="margin-top: 0;">Új pilóta hozzáadása</h3>
                 <input type="hidden" id="editId">
-                <input type="text" id="pNev" placeholder="Név">
-                <input type="text" id="pNemzet" placeholder="Nemzet">
+                <input type="text" id="pDatum" placeholder="Dátum (pl. 1958.10.19)">
+                <input type="number" id="pPilotaaz" placeholder="Pilóta ID">
+                <input type="number" id="pHelyezes" placeholder="Helyezés">
+                <input type="text" id="pHiba" placeholder="Hiba (ha volt)">
+                <input type="text" id="pCsapat" placeholder="Csapat">
+                <input type="text" id="pTipus" placeholder="Típus">
+                <input type="text" id="pMotor" placeholder="Motor">
+                
                 <button id="submitBtn" class="btn-add" onclick="handleSubmit()">Hozzáadás</button>
                 <button id="cancelBtn" style="display:none; background:gray;" onclick="resetForm()">Mégse</button>
             </div>
 
             <table id="pTable">
-                <thead><tr><th>ID</th><th>Név</th><th>Nemzet</th><th>Műveletek</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th>Dátum</th>
+                        <th>Pilóta ID</th>
+                        <th>Helyezés</th>
+                        <th>Hiba</th>
+                        <th>Csapat</th>
+                        <th>Típus</th>
+                        <th>Motor</th>
+                        <th>Műveletek</th>
+                    </tr>
+                </thead>
                 <tbody></tbody>
             </table>
         </div>
@@ -69,30 +82,50 @@
     </footer>
 
     <script>
-        const API_URL = 'http://localhost:3000/pilotak';
+        // Mivel egy mappában lesznek a tárhelyen, elég az api.php hivatkozás
+        const API_URL = 'api.php';
 
         async function loadData() {
-            const res = await fetch(API_URL);
-            const data = await res.json();
-            const tbody = document.querySelector('#pTable tbody');
-            tbody.innerHTML = data.map(p => `
-                <tr>
-                    <td>${p.id}</td>
-                    <td>${p.nev}</td>
-                    <td>${p.nemzet}</td>
-                    <td>
-                        <button class="btn-update" onclick="prepareUpdate('${p.id}', '${p.nev}', '${p.nemzet}')">Szerkesztés</button>
-                        <button class="btn-delete" onclick="deleteItem('${p.id}')">Törlés</button>
-                    </td>
-                </tr>
-            `).join('');
+            try {
+                const res = await fetch(API_URL);
+                const data = await res.json();
+                const tbody = document.querySelector('#pTable tbody');
+                tbody.innerHTML = data.map(p => `
+                    <tr>
+                        <td>${p.datum || ''}</td>
+                        <td>${p.pilotaaz || ''}</td>
+                        <td>${p.helyezes || ''}</td>
+                        <td>${p.hiba || ''}</td>
+                        <td>${p.csapat || ''}</td>
+                        <td>${p.tipus || ''}</td>
+                        <td>${p.motor || ''}</td>
+                        <td>
+                            <button class="btn-update" onclick="prepareUpdate('${p.id}', '${p.datum}', '${p.pilotaaz}', '${p.helyezes}', '${p.hiba}', '${p.csapat}', '${p.tipus}', '${p.motor}')">Módosít</button>
+                            <button class="btn-delete" onclick="deleteItem('${p.id}')">Töröl</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error("Hiba az adatok betöltésekor!", error);
+            }
         }
 
         async function handleSubmit() {
             const id = document.getElementById('editId').value;
-            const nev = document.getElementById('pNev').value;
-            const nemzet = document.getElementById('pNemzet').value;
-            if(!nev) return;
+            const payload = {
+                datum: document.getElementById('pDatum').value,
+                pilotaaz: document.getElementById('pPilotaaz').value,
+                helyezes: document.getElementById('pHelyezes').value,
+                hiba: document.getElementById('pHiba').value,
+                csapat: document.getElementById('pCsapat').value,
+                tipus: document.getElementById('pTipus').value,
+                motor: document.getElementById('pMotor').value
+            };
+            
+            if(!payload.datum || !payload.pilotaaz) {
+                alert("A dátum és a pilóta ID megadása kötelező!");
+                return;
+            }
 
             const method = id ? 'PUT' : 'POST';
             const url = id ? `${API_URL}/${id}` : API_URL;
@@ -100,32 +133,46 @@
             await fetch(url, {
                 method: method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nev, nemzet, nem: 'F', szuldat: '' })
+                body: JSON.stringify(id ? { ...payload, id } : payload)
             });
+            
             resetForm();
             loadData();
         }
 
-        function prepareUpdate(id, nev, nemzet) {
+        function prepareUpdate(id, datum, pilotaaz, helyezes, hiba, csapat, tipus, motor) {
             document.getElementById('editId').value = id;
-            document.getElementById('pNev').value = nev;
-            document.getElementById('pNemzet').value = nemzet;
-            document.getElementById('submitBtn').innerText = "Módosítás mentése";
-            document.getElementById('formTitle').innerText = "Pilóta szerkesztése";
+            document.getElementById('pDatum').value = datum !== 'null' ? datum : '';
+            document.getElementById('pPilotaaz').value = pilotaaz !== 'null' ? pilotaaz : '';
+            document.getElementById('pHelyezes').value = helyezes !== 'null' ? helyezes : '';
+            document.getElementById('pHiba').value = hiba !== 'null' ? hiba : '';
+            document.getElementById('pCsapat').value = csapat !== 'null' ? csapat : '';
+            document.getElementById('pTipus').value = tipus !== 'null' ? tipus : '';
+            document.getElementById('pMotor').value = motor !== 'null' ? motor : '';
+            
+            document.getElementById('submitBtn').innerText = "Mentés";
+            document.getElementById('submitBtn').classList.replace('btn-add', 'btn-update');
             document.getElementById('cancelBtn').style.display = "inline";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function resetForm() {
             document.getElementById('editId').value = '';
-            document.getElementById('pNev').value = '';
-            document.getElementById('pNemzet').value = '';
+            document.getElementById('pDatum').value = '';
+            document.getElementById('pPilotaaz').value = '';
+            document.getElementById('pHelyezes').value = '';
+            document.getElementById('pHiba').value = '';
+            document.getElementById('pCsapat').value = '';
+            document.getElementById('pTipus').value = '';
+            document.getElementById('pMotor').value = '';
+            
             document.getElementById('submitBtn').innerText = "Hozzáadás";
-            document.getElementById('formTitle').innerText = "Új pilóta hozzáadása";
+            document.getElementById('submitBtn').classList.replace('btn-update', 'btn-add');
             document.getElementById('cancelBtn').style.display = "none";
         }
 
         async function deleteItem(id) {
-            if(confirm("Törlöd?")) {
+            if(confirm("Biztosan törlöd ezt az eredményt az adatbázisból?")) {
                 await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
                 loadData();
             }
