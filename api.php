@@ -4,7 +4,7 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE");
 header("Access-Control-Allow-Headers: Content-Type");
 
-// NETHELY ADATOK - Írd át a sajátjaidra!
+// NETHELY ADATOK!
 $host = 'localhost'; 
 $dbname = 'beadando_anybody';
 $user = 'beadando_anybody';
