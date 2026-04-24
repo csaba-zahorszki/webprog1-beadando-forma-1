@@ -8,7 +8,7 @@ header("Access-Control-Allow-Headers: Content-Type");
 $host = 'localhost'; 
 $dbname = 'beadando_anybody';
 $user = 'beadando_anybody';
-$pass = 'M1szt3rM1n1szt3r!';
+$pass = 'A nyilvános Repo miatt a jelszó a dokumentáció 3. oldalán található! A weboldalon a jelszavas api.php van feltöltve.';
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $pass, [
