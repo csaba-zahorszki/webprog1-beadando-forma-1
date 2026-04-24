@@ -134,11 +134,11 @@ function App() {
 
       <table style={{ width: '100%', borderCollapse: 'collapse', background: 'white', boxShadow: '0 0 10px rgba(0,0,0,0.1)' }}>
         <thead>
-          <tr style={{ background: '#15151e', color: 'white' }}>
-            <th onClick={() => requestSort('datum')} style={{...tdStyle, cursor: 'pointer'}}>Dátum {getSortIndicator('datum')}</th>
-            <th onClick={() => requestSort('nev')} style={{...tdStyle, cursor: 'pointer'}}>Nagydíj Neve {getSortIndicator('nev')}</th>
-            <th onClick={() => requestSort('helyszin')} style={{...tdStyle, cursor: 'pointer'}}>Helyszín {getSortIndicator('helyszin')}</th>
-            <th style={tdStyle}>Műveletek</th>
+          <tr style={{ background: '#15151e' }}>
+            <th onClick={() => requestSort('datum')} style={{...tdStyle, cursor: 'pointer', color: 'white'}}>Dátum {getSortIndicator('datum')}</th>
+            <th onClick={() => requestSort('nev')} style={{...tdStyle, cursor: 'pointer', color: 'white'}}>Nagydíj Neve {getSortIndicator('nev')}</th>
+            <th onClick={() => requestSort('helyszin')} style={{...tdStyle, cursor: 'pointer', color: 'white'}}>Helyszín {getSortIndicator('helyszin')}</th>
+            <th style={{...tdStyle, color: 'white'}}>Műveletek</th>
           </tr>
         </thead>
         <tbody>

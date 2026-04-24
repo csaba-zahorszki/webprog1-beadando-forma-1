@@ -21,10 +21,39 @@ try {
 $method = $_SERVER['REQUEST_METHOD'];
 
 switch ($method) {
-    case 'GET':
-        // Csak az utolsó 100-at kérjük le, hogy ne fagyjon le a böngésző a 2259 sortól!
-        $stmt = $pdo->query("SELECT * FROM eredmenyek ORDER BY id DESC LIMIT 100");
-        echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+    case 'GET':        
+        $limit = 100;
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        if ($page < 1) $page = 1;
+        $offset = ($page - 1) * $limit; 
+
+        // ÚJ: Rendezési paraméterek beolvasása (biztonsági ellenőrzéssel!)
+        $allowedCols = ['datum', 'pilota_neve', 'helyezes', 'hiba', 'csapat', 'tipus', 'motor', 'id'];
+        $sort = isset($_GET['sort']) && in_array($_GET['sort'], $allowedCols) ? $_GET['sort'] : 'id';
+        $dir = isset($_GET['dir']) && strtoupper($_GET['dir']) === 'ASC' ? 'ASC' : 'DESC';
+
+        $totalCount = $pdo->query("SELECT COUNT(*) FROM eredmenyek")->fetchColumn();
+
+        // ÚJ: A lekérdezés most már az ORDER BY $sort $dir alapján rendez!
+        $sql = "SELECT e.*, p.nev AS pilota_neve 
+                FROM eredmenyek e 
+                LEFT JOIN pilotak p ON e.pilotaaz = p.id 
+                ORDER BY $sort $dir 
+                LIMIT :limit OFFSET :offset";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        
+        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        echo json_encode([
+            "total" => (int)$totalCount,
+            "page" => $page,
+            "limit" => $limit,
+            "data" => $data
+        ]);
         break;
 
     case 'POST':

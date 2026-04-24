@@ -13,7 +13,6 @@
         footer { background-color: #15151e; color: white; text-align: center; padding: 20px; font-size: 0.9em; margin-top: auto; }
         main { flex: 1; padding: 40px 20px; } 
 
-
         .container { max-width: 1400px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
         .form-group { margin-bottom: 15px; background: #eee; padding: 15px; border-radius: 5px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
         input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; flex: 1; min-width: 120px; }
@@ -23,7 +22,12 @@
         .btn-delete { background: #333; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.9em; }
         th, td { border-bottom: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background: #15151e; color: white; }
+        th { background: #15151e; color: white; user-select: none; }
+        
+        /* Lapozó gombok stílusa */
+        .pagination-btn { background: #15151e; color: white; margin: 0 5px; transition: 0.2s; }
+        .pagination-btn:hover:not(:disabled) { background: #e10600; }
+        .pagination-btn:disabled { background: #ccc; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -62,18 +66,20 @@
             <table id="pTable">
                 <thead>
                     <tr>
-                        <th>Dátum</th>
-                        <th>Pilóta ID</th>
-                        <th>Helyezés</th>
-                        <th>Hiba</th>
-                        <th>Csapat</th>
-                        <th>Típus</th>
-                        <th>Motor</th>
+                        <th onclick="requestSort('datum')" style="cursor:pointer">Dátum <span id="sort-datum">↕️</span></th>
+                        <th onclick="requestSort('pilota_neve')" style="cursor:pointer">Pilóta Neve <span id="sort-pilota_neve">↕️</span></th>
+                        <th onclick="requestSort('helyezes')" style="cursor:pointer">Helyezés <span id="sort-helyezes">↕️</span></th>
+                        <th onclick="requestSort('hiba')" style="cursor:pointer">Hiba <span id="sort-hiba">↕️</span></th>
+                        <th onclick="requestSort('csapat')" style="cursor:pointer">Csapat <span id="sort-csapat">↕️</span></th>
+                        <th onclick="requestSort('tipus')" style="cursor:pointer">Típus <span id="sort-tipus">↕️</span></th>
+                        <th onclick="requestSort('motor')" style="cursor:pointer">Motor <span id="sort-motor">↕️</span></th>
                         <th>Műveletek</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
             </table>
+            
+            <div id="paginationContainer" style="text-align: center; margin-top: 25px; padding: 10px;"></div>
         </div>
     </main>
 
@@ -81,19 +87,29 @@
         Készítette: Zahorszki Csaba [Q3R1ZR] és Fajcsák Gábor [DYE996]
     </footer>
 
-    <script>
-        // Mivel egy mappában lesznek a tárhelyen, elég az api.php hivatkozás
+    <script>        
         const API_URL = 'api.php';
+        let currentPage = 1; 
+        
+        // Rendezési paraméterek
+        let currentSortCol = 'id';
+        let currentSortDir = 'desc';
 
-        async function loadData() {
+        async function loadData(page = 1) {
+            currentPage = page;
             try {
-                const res = await fetch(API_URL);
-                const data = await res.json();
+                // A kéréshez hozzáfűzzük a lapozást és a rendezést is!
+                const res = await fetch(`${API_URL}?page=${currentPage}&sort=${currentSortCol}&dir=${currentSortDir}`);
+                const result = await res.json();
+                
+                const data = result.data || [];
+                const totalPages = Math.ceil((result.total || 0) / (result.limit || 100)) || 1;
+
                 const tbody = document.querySelector('#pTable tbody');
                 tbody.innerHTML = data.map(p => `
                     <tr>
                         <td>${p.datum || ''}</td>
-                        <td>${p.pilotaaz || ''}</td>
+                        <td><strong>${p.pilota_neve ? p.pilota_neve : 'ID: ' + p.pilotaaz}</strong></td>
                         <td>${p.helyezes || ''}</td>
                         <td>${p.hiba || ''}</td>
                         <td>${p.csapat || ''}</td>
@@ -105,9 +121,55 @@
                         </td>
                     </tr>
                 `).join('');
+
+                renderPagination(totalPages);
+                updateSortIcons();
             } catch (error) {
                 console.error("Hiba az adatok betöltésekor!", error);
             }
+        }
+
+        // Rendezés kérése a fejlécre kattintáskor
+        function requestSort(col) {
+            if (currentSortCol === col) {
+                currentSortDir = currentSortDir === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSortCol = col;
+                currentSortDir = 'asc';
+            }
+            loadData(1); // Rendezéskor mindig visszaugrik az 1. oldalra
+        }
+
+        // Nyilak vizuális frissítése a fejlécben
+        function updateSortIcons() {
+            document.querySelectorAll('th span').forEach(span => span.innerText = '↕️');
+            const activeSpan = document.getElementById(`sort-${currentSortCol}`);
+            if(activeSpan) {
+                activeSpan.innerText = currentSortDir === 'asc' ? '⬆️' : '⬇️';
+            }
+        }
+
+        function renderPagination(totalPages) {
+            const container = document.getElementById('paginationContainer');
+            if (!container) return;
+
+            let html = '';
+            
+            if (currentPage > 10) {
+                html += `<button class="pagination-btn" onclick="loadData(${currentPage - 10})">&laquo; -10</button>`;
+            }
+            
+            html += `<button class="pagination-btn" ${currentPage <= 1 ? 'disabled' : ''} onclick="loadData(${currentPage - 1})">Előző</button>`;
+            
+            html += `<span style="margin: 0 15px; font-weight: bold; font-size: 1.1em;">${currentPage}. oldal a ${totalPages}-ből</span>`;
+
+            html += `<button class="pagination-btn" ${currentPage >= totalPages ? 'disabled' : ''} onclick="loadData(${currentPage + 1})">Következő</button>`;
+
+            if (currentPage <= totalPages - 10) {
+                html += `<button class="pagination-btn" onclick="loadData(${currentPage + 10})">+10 &raquo;</button>`;
+            }
+
+            container.innerHTML = html;
         }
 
         async function handleSubmit() {
@@ -137,7 +199,7 @@
             });
             
             resetForm();
-            loadData();
+            loadData(currentPage); 
         }
 
         function prepareUpdate(id, datum, pilotaaz, helyezes, hiba, csapat, tipus, motor) {
@@ -174,11 +236,11 @@
         async function deleteItem(id) {
             if(confirm("Biztosan törlöd ezt az eredményt az adatbázisból?")) {
                 await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-                loadData();
+                loadData(currentPage); 
             }
         }
 
-        window.onload = loadData;
+        window.onload = () => loadData(1);
     </script>
 </body>
 </html>
